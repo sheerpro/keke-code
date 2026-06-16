@@ -69,7 +69,12 @@ def _run_repl(agent: KekeAgent, use_llm: bool, show_steps: bool) -> int:
         if prompt in {"/exit", "exit", "quit"}:
             return 0
         if prompt == "/help":
-            print("指令：直接输入任务；或在 --no-llm 模式使用 pwd、ls、read <path>、run <command>。")
+            print("指令：直接输入任务；/model 查看当前模型；/exit 退出；或在 --no-llm 模式使用 pwd、ls、read <path>、run <command>。")
+            continue
+        if prompt == "/model":
+            print(f"base_url={agent.llm.base_url}")
+            print(f"model={agent.llm.model}")
+            print(f"configured={agent.llm.configured}")
             continue
         exit_code = _run_once(agent, prompt, use_llm=use_llm, show_steps=show_steps)
         if exit_code != 0:
