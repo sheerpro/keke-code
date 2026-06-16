@@ -24,6 +24,16 @@ class CliReplTest(unittest.TestCase):
         self.assertIn("base_url=https://example.com/v1", output.getvalue())
         self.assertIn("model=demo-model", output.getvalue())
 
+    def test_status_command_is_handled_locally(self) -> None:
+        agent = KekeAgent(ToolRegistry(Workspace(".")), llm=OpenAICompatibleClient(api_key="test"))
+        output = io.StringIO()
+
+        with patch("builtins.input", side_effect=["/status", "/exit"]), redirect_stdout(output):
+            exit_code = _run_repl(agent, use_llm=True, show_steps=False)
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("##", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

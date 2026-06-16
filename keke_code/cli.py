@@ -57,7 +57,10 @@ def _run_once(agent: KekeAgent, prompt: str, use_llm: bool, show_steps: bool) ->
 
 
 def _run_repl(agent: KekeAgent, use_llm: bool, show_steps: bool) -> int:
-    print("keke_code 已启动。输入 /exit 退出，/help 查看本地指令。")
+    print("✻ Welcome to keke_code")
+    print(f"  workspace: {agent.tools.workspace.root}")
+    print(f"  model: {agent.llm.model} ({agent.llm.base_url})")
+    print("  输入 /exit 退出，/help 查看指令。")
     while True:
         try:
             prompt = input("keke_code> ").strip()
@@ -69,12 +72,29 @@ def _run_repl(agent: KekeAgent, use_llm: bool, show_steps: bool) -> int:
         if prompt in {"/exit", "exit", "quit"}:
             return 0
         if prompt == "/help":
-            print("指令：直接输入任务；/model 查看当前模型；/exit 退出；或在 --no-llm 模式使用 pwd、ls、read <path>、run <command>。")
+            print(
+                "指令：\n"
+                "  /model   查看当前模型配置\n"
+                "  /status  查看 Git 状态\n"
+                "  /diff    查看当前改动\n"
+                "  /tools   查看 Agent 可用工具\n"
+                "  /exit    退出\n"
+                "本地教学模式还支持：pwd、ls、tree、read <path>、grep <text>、run <command>。"
+            )
             continue
         if prompt == "/model":
             print(f"base_url={agent.llm.base_url}")
             print(f"model={agent.llm.model}")
             print(f"configured={agent.llm.configured}")
+            continue
+        if prompt == "/tools":
+            print(agent.tools.render_specs())
+            continue
+        if prompt == "/status":
+            print(agent.tools.call("git_status").output)
+            continue
+        if prompt == "/diff":
+            print(agent.tools.call("git_diff").output)
             continue
         exit_code = _run_once(agent, prompt, use_llm=use_llm, show_steps=show_steps)
         if exit_code != 0:
@@ -82,10 +102,12 @@ def _run_repl(agent: KekeAgent, use_llm: bool, show_steps: bool) -> int:
 
 
 def _print_response(response: AgentResponse, show_steps: bool) -> None:
+    if response.steps:
+        print(f"⏺ Used {len(response.steps)} tool(s)")
     if show_steps and response.steps:
         for index, step in enumerate(response.steps, start=1):
             status = "ok" if step.result.ok else "error"
-            print(f"[step {index}] {step.tool} {step.args} -> {status}")
+            print(f"[step {index}] {step.tool} {step.args} -> {status}; {step.thought}")
             print(step.result.output)
     print(response.answer)
 

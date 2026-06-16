@@ -29,6 +29,21 @@ class ToolRegistryTest(unittest.TestCase):
             self.assertEqual(read.output, "hello")
             self.assertIn("notes/hello.txt", listing.output)
 
+    def test_grep_tree_and_edit_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            tools = ToolRegistry(Workspace(Path(directory)))
+            tools.call("write_file", {"path": "src/app.py", "content": "print('hello')\n"})
+
+            grep = tools.call("grep", {"pattern": "hello"})
+            tree = tools.call("tree", {"path": "."})
+            edit = tools.call("edit_file", {"path": "src/app.py", "old": "hello", "new": "keke"})
+            read = tools.call("read_file", {"path": "src/app.py"})
+
+            self.assertIn("src/app.py:1", grep.output)
+            self.assertIn("src/", tree.output)
+            self.assertTrue(edit.ok)
+            self.assertIn("keke", read.output)
+
 
 if __name__ == "__main__":
     unittest.main()

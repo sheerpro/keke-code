@@ -29,6 +29,23 @@ class KekeAgentTest(unittest.TestCase):
 
             self.assertEqual(response.answer, "demo")
 
+    def test_local_mode_reports_model(self) -> None:
+        agent = KekeAgent(ToolRegistry(Workspace(".")))
+
+        response = agent.run("model", use_llm=False)
+
+        self.assertIn("model=", response.answer)
+
+    def test_local_mode_grep(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "README.md").write_text("hello keke", encoding="utf-8")
+            agent = KekeAgent(ToolRegistry(Workspace(root)))
+
+            response = agent.run("grep keke", use_llm=False)
+
+            self.assertIn("README.md:1", response.answer)
+
 
 if __name__ == "__main__":
     unittest.main()
