@@ -11,6 +11,7 @@ import os
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 
@@ -34,9 +35,12 @@ class OpenAICompatibleClient:
         model: Optional[str] = None,
         timeout: int = 60,
     ) -> None:
-        self.api_key = api_key or os.getenv("KEKE_CODE_API_KEY") or os.getenv("OPENAI_API_KEY")
-        self.base_url = (base_url or os.getenv("KEKE_CODE_BASE_URL") or "https://api.openai.com/v1").rstrip("/")
-        self.model = model or os.getenv("KEKE_CODE_MODEL") or "gpt-4o-mini"
+        local_config = load_local_config()
+        self.api_key = api_key or local_config.get("api_key") or os.getenv("KEKE_CODE_API_KEY") or os.getenv("OPENAI_API_KEY")
+        self.base_url = (
+            base_url or local_config.get("base_url") or os.getenv("KEKE_CODE_BASE_URL") or "https://api.openai.com/v1"
+        ).rstrip("/")
+        self.model = model or local_config.get("model") or os.getenv("KEKE_CODE_MODEL") or "gpt-4o-mini"
         self.timeout = timeout
 
     @property
@@ -74,3 +78,18 @@ class OpenAICompatibleClient:
             return data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
             raise LLMError(f"unexpected LLM response: {data}") from exc
+
+
+def load_local_config(path: Optional[Path] = None) -> dict[str, str]:
+    """Load optional local model config without committing secrets to git."""
+
+    config_path = path or Path.cwd() / ".keke_code_config.json"
+    if not config_path.exists():
+        return {}
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LLMError(f"invalid local config {config_path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise LLMError(f"local config must be a JSON object: {config_path}")
+    return {str(key): str(value) for key, value in data.items() if value is not None}

@@ -14,11 +14,17 @@ keke_code --no-llm "read README.md"
 如需接入真实大模型，配置 OpenAI 兼容接口：
 
 ```bash
-export KEKE_CODE_API_KEY="your-api-key"
-export KEKE_CODE_BASE_URL="https://api.openai.com/v1"
-export KEKE_CODE_MODEL="gpt-4o-mini"
+cat > .keke_code_config.json <<'JSON'
+{
+  "api_key": "your-api-key",
+  "base_url": "https://api.openai.com/v1",
+  "model": "gpt-4o-mini"
+}
+JSON
 keke_code "帮我阅读 README 并总结项目"
 ```
+
+`.keke_code_config.json` 已被 `.gitignore` 忽略，适合放本机私有 API Key；命令行参数和环境变量仍然可用，并且优先级更高。
 
 ## 架构学习路线
 

@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+.keke_code_config.json
 .pytest_cache/
 .venv/
 dist/
