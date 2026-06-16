@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keke-code"
+version = "0.1.0"
+description = "A small Claude Code-style terminal coding agent for learning agent architecture."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "keke_code" }]
+license = "MIT"
+dependencies = []
+
+[project.scripts]
+keke_code = "keke_code.cli:main"
+keke-code = "keke_code.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["keke_code*"]
